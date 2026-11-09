@@ -1,46 +1,58 @@
 // src/app/actions.ts
 "use server"
 
-import { revalidatePath } from "next/cache"
-import { eq } from "drizzle-orm"
 import { db } from "../db"
 import { comments } from "../db/schema"
+import { eq, and } from "drizzle-orm"
+import { revalidatePath } from "next/cache"
 
-type ActionState = { error?: string; success?: boolean }
+// Create Komentar
+export async function addComment(formData: FormData) {
+  const name = formData.get("name") as string
+  const content = formData.get("content") as string
+  const userToken = formData.get("userToken") as string
 
-function validate(name: string, message: string): string | null {
-  if (!name.trim()) return "Nama wajib diisi"
-  if (name.trim().length > 50) return "Nama maksimal 50 karakter"
-  if (!message.trim()) return "Komentar wajib diisi"
-  if (message.trim().length > 500) return "Komentar maksimal 500 karakter"
-  return null
+  if (!name || !content) return
+
+  await db.insert(comments).values({
+    name,
+    content,
+    userToken: userToken || null,
+  })
+
+  revalidatePath("/")
 }
 
-// CREATE
-export async function addComment(_prev: ActionState, formData: FormData): Promise<ActionState> {
-  const name = String(formData.get("name") ?? "")
-  const message = String(formData.get("message") ?? "")
+// Update Komentar (Hanya jika ID & User Token cocok)
+export async function updateComment(id: number, content: string, userToken: string) {
+  if (!content) return { success: false, message: "Komentar tidak boleh kosong" }
 
-  const error = validate(name, message)
-  if (error) return { error }
+  const existing = await db
+    .select()
+    .from(comments)
+    .where(and(eq(comments.id, id), eq(comments.userToken, userToken)))
 
-  await db.insert(comments).values({ name: name.trim(), message: message.trim() })
+  if (existing.length === 0) {
+    return { success: false, message: "Akses ditolak: Anda bukan pemilik komentar ini." }
+  }
+
+  await db.update(comments).set({ content }).where(eq(comments.id, id))
   revalidatePath("/")
   return { success: true }
 }
 
-// UPDATE
-export async function updateComment(id: number, message: string): Promise<ActionState> {
-  if (!message.trim()) return { error: "Komentar wajib diisi" }
-  if (message.trim().length > 500) return { error: "Komentar maksimal 500 karakter" }
+// Delete Komentar (Hanya jika ID & User Token cocok)
+export async function deleteComment(id: number, userToken: string) {
+  const existing = await db
+    .select()
+    .from(comments)
+    .where(and(eq(comments.id, id), eq(comments.userToken, userToken)))
 
-  await db.update(comments).set({ message: message.trim(), updatedAt: new Date() }).where(eq(comments.id, id))
-  revalidatePath("/")
-  return { success: true }
-}
+  if (existing.length === 0) {
+    return { success: false, message: "Akses ditolak: Anda bukan pemilik komentar ini." }
+  }
 
-// DELETE
-export async function deleteComment(id: number) {
   await db.delete(comments).where(eq(comments.id, id))
   revalidatePath("/")
+  return { success: true }
 }

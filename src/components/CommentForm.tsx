@@ -1,25 +1,44 @@
 // src/components/CommentForm.tsx
 "use client"
-import { useActionState } from "react"
+import { useEffect, useState } from "react"
 import { addComment } from "../app/actions"
-
-const inputClass =
-  "w-full rounded-xl border border-text-secondary/20 bg-thirdary px-4 py-3 text-sm text-text-primary placeholder:text-text-secondary outline-none transition-colors focus:border-text-primary"
+import { getOrCreateUserToken } from "../lib/userToken"
 
 export default function CommentForm() {
-  const [state, formAction, pending] = useActionState<{ error?: string; success?: boolean }, FormData>(addComment, {})
+  const [token, setToken] = useState("")
+
+  useEffect(() => {
+    setToken(getOrCreateUserToken())
+  }, [])
 
   return (
-    <form action={formAction} className="space-y-4 rounded-xl border border-text-secondary/20 bg-background p-6 md:p-8 shadow-sm">
-      <input name="name" required maxLength={50} placeholder="Nama kamu" className={inputClass} />
-      <textarea name="message" required maxLength={500} rows={3} placeholder="Tulis komentar..." className={inputClass} />
-      {state.error && <p className="text-sm text-red-500">{state.error}</p>}
+    <form action={addComment} className="flex flex-col gap-4 p-6 rounded-2xl border border-text-secondary/20 bg-background shadow-md">
+      {/* Hidden input untuk mengirim userToken saat submit */}
+      <input type="hidden" name="userToken" value={token} />
+
+      <h3 className="text-xl font-bold text-text-primary">Tinggalkan Komentar</h3>
+      
+      <input
+        type="text"
+        name="name"
+        placeholder="Nama Anda"
+        required
+        className="px-4 py-3 rounded-xl border border-text-secondary/20 bg-background text-text-primary focus:outline-none focus:border-text-primary"
+      />
+
+      <textarea
+        name="content"
+        rows={4}
+        placeholder="Tulis masukan atau pesan Anda..."
+        required
+        className="px-4 py-3 rounded-xl border border-text-secondary/20 bg-background text-text-primary focus:outline-none focus:border-text-primary resize-none"
+      />
+
       <button
         type="submit"
-        disabled={pending}
-        className="cursor-pointer text-sm font-bold bg-text-primary text-background px-8 py-4 rounded-xl hover:-translate-y-1 transition-all duration-300 disabled:opacity-50 disabled:hover:translate-y-0"
-      > 
-        {pending ? "Mengirim..." : "Kirim Komentar"}
+        className="cursor-pointer font-bold bg-text-primary text-background py-3.5 px-6 rounded-xl hover:opacity-90 transition-opacity"
+      >
+        Kirim Komentar
       </button>
     </form>
   )
