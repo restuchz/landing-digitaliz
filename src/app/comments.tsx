@@ -6,12 +6,6 @@ import CommentForm from "../components/CommentForm"
 import CommentItem from "../components/CommentItem"
 import FadeUp from "../components/animations/FadeUp"
 
-const fmt = new Intl.DateTimeFormat("id-ID", {
-  dateStyle: "medium",
-  timeStyle: "short",
-  timeZone: "Asia/Makassar",
-})
-
 export default async function Comments() {
   const rows = await db.select().from(comments).orderBy(desc(comments.createdAt))
 
@@ -39,11 +33,13 @@ export default async function Comments() {
         {rows.map((c) => (
           <CommentItem
             key={c.id}
-            id={c.id}
-            name={c.name}
-            message={c.message}
-            createdAt={fmt.format(c.createdAt)}
-            edited={c.updatedAt.getTime() - c.createdAt.getTime() > 1000}
+            comment={{
+              id: c.id,
+              name: c.name,
+              content: c.content,
+              userToken: c.userToken,
+              createdAt: c.createdAt,
+            }}
           />
         ))}
       </div>
