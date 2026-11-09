@@ -3,6 +3,18 @@ import { Poppins } from "next/font/google"
 import Header from "../components/Header"
 import "../styles/globals.css"
 
+import { Instrument_Serif } from "next/font/google"
+
+const serif = Instrument_Serif({
+  subsets: ["latin"],
+  weight: "400",
+  style: "italic",
+  variable: "--font-serif",
+})
+
+// lalu di <body> tambahkan variable-nya, contoh:
+// <body className={`${serif.variable} ...class-lain-kamu`}>
+
 const poppins = Poppins({
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700", "800", "900"],
