@@ -1,7 +1,8 @@
-// src/app/hero.tsx
 "use client"
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useState } from "react"
 import type { PropsWithChildren } from "react"
+
+const TEXTS = ["Web Development", "UI/UX Design", "IT Support"]
 
 function FadeUp({ children, delay = 0 }: PropsWithChildren<{ delay?: number }>) {
   return (
@@ -20,39 +21,53 @@ export default function Hero() {
   const [index, setIndex] = useState(0)
   const [subIndex, setSubIndex] = useState(0)
   const [deleting, setDeleting] = useState(false)
-  const texts = useMemo(() => ["Web Development", "UI/UX Design", "IT Support"], [])
+  const [mounted, setMounted] = useState(false)
 
   const goTo = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" })
 
+  // Memastikan komponen sudah mounted penuh di browser HP/Laptop
   useEffect(() => {
-    const current = texts[index % texts.length]
-    const t = setTimeout(
+    setMounted(true)
+  }, [])
+
+  // Logika efek ketik yang aman untuk Network & Mobile
+  useEffect(() => {
+    if (!mounted) return
+
+    const current = TEXTS[index]
+    const timeout = setTimeout(
       () => {
-        if (!deleting && subIndex < current.length) setSubIndex(subIndex + 1)
-        else if (deleting && subIndex > 0) setSubIndex(subIndex - 1)
-        else if (!deleting && subIndex === current.length) setDeleting(true)
-        else if (deleting && subIndex === 0) {
+        if (!deleting && subIndex < current.length) {
+          setSubIndex((prev) => prev + 1)
+        } else if (deleting && subIndex > 0) {
+          setSubIndex((prev) => prev - 1)
+        } else if (!deleting && subIndex === current.length) {
+          setTimeout(() => setDeleting(true), 1200)
+        } else if (deleting && subIndex === 0) {
           setDeleting(false)
-          setIndex((index + 1) % texts.length)
+          setIndex((prev) => (prev + 1) % TEXTS.length)
         }
       },
-      deleting ? 75 : 150,
+      deleting ? 60 : 120,
     )
-    return () => clearTimeout(t)
-  }, [subIndex, deleting, index, texts])
+    return () => clearTimeout(timeout)
+  }, [subIndex, deleting, index, mounted])
 
   return (
     <section id="home" className="w-full max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-20 items-center px-6 md:px-12 py-28 md:py-36 overflow-hidden">
       <FadeUp>
         <div className="flex flex-col gap-2">
-          <h1 className="text-text-primary text-4xl md:text-5xl lg:text-7xl font-black tracking-tighter leading-tight">
+          <h1 className="text-text-primary text-4xl md:text-5xl lg:text-7xl font-medium tracking-tighter leading-tight">
             Solusi digital
             <span className="text-transparent bg-clip-text bg-linear-to-r from-text-primary to-text-secondary"> untuk Banua</span>
           </h1>
 
-          <div className="relative">
-            <span className="text-text-primary text-xl md:text-2xl lg:text-3xl font-bold tracking-tight">{texts[index].substring(0, subIndex)}</span>
-            <span className="animate-cursor text-text-secondary text-2xl lg:text-3xl font-light">|</span>
+          {/* Area Typing Effect */}
+          <div className="relative h-10 flex items-center">
+            <span className="text-text-primary text-xl md:text-2xl lg:text-3xl font-semibold tracking-tight min-h-[36px]">
+              {mounted ? TEXTS[index].substring(0, subIndex) : TEXTS[0]}
+            </span>
+            <span className="animate-cursor text-text-secondary text-2xl lg:text-3xl font-light ml-1">|</span>
           </div>
 
           <div className="max-w-xl mt-4">
