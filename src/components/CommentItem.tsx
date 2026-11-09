@@ -19,13 +19,15 @@ export default function CommentItem({ comment }: CommentProps) {
   const [editContent, setEditContent] = useState(comment.content)
   const [currentUserToken, setCurrentUserToken] = useState("")
   const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [isMounted, setIsMounted] = useState(false)
 
   useEffect(() => {
     setCurrentUserToken(getOrCreateUserToken())
+    setIsMounted(true)
   }, [])
 
-  // Tombol Edit & Hapus HANYA AKTIF jika userToken cocok
-  const isOwner = comment.userToken && comment.userToken === currentUserToken
+  // Tombol Edit & Hapus HANYA AKTIF jika sudah mounted dan userToken cocok
+  const isOwner = isMounted && Boolean(comment.userToken) && comment.userToken === currentUserToken
 
   const handleUpdate = async () => {
     const res = await updateComment(comment.id, editContent, currentUserToken)
