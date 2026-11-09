@@ -3,7 +3,7 @@ import { desc } from "drizzle-orm"
 import { db } from "../db"
 import { comments } from "../db/schema"
 import CommentForm from "../components/CommentForm"
-import CommentItem from "../components/CommentItem"
+import RealtimeComments from "../components/RealtimeComments"
 import FadeUp from "../components/animations/FadeUp"
 
 export default async function Comments() {
@@ -22,26 +22,9 @@ export default async function Comments() {
       </div>
 
       <div className="mt-10 space-y-4">
-        <p className="text-xs font-bold uppercase tracking-widest text-text-secondary">{rows.length} komentar</p>
-
-        {rows.length === 0 && (
-          <p className="rounded-xl border border-dashed border-text-secondary/30 p-8 text-center text-sm text-text-secondary">
-            Belum ada komentar. Jadilah yang pertama!
-          </p>
-        )}
-
-        {rows.map((c) => (
-          <CommentItem
-            key={c.id}
-            comment={{
-              id: c.id,
-              name: c.name,
-              content: c.content,
-              userToken: c.userToken,
-              createdAt: c.createdAt,
-            }}
-          />
-        ))}
+        {/* Menggantikan bagian {rows.length} dan {rows.map(...)} lama. */}
+        {/* Data awal (rows) tetap dikirimkan ke RealtimeComments agar tampilan langsung muncul tanpa loading awal. */}
+        <RealtimeComments initialComments={rows} />
       </div>
     </section>
   )
